@@ -15,6 +15,7 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
 
+
         var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {

@@ -33,5 +33,22 @@ namespace TodoApp.Domain.Entities
         public User User { get; private set; }
         #endregion
 
+        #region methods
+        public void Complete()
+        {
+            if (IsCompleted)
+                return;
+
+            IsCompleted = true;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateDescription(string? description)
+        {
+            Description = description;
+            UpdatedAt = DateTime.UtcNow;
+        }
+        #endregion
+
     }
 }

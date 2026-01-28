@@ -2,32 +2,44 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Windows.Forms;
+using TodoApp.Application.Tasks;
+using TodoApp.Domain.Repositories;
 using TodoApp.Infrastructure.Data;
+using TodoApp.Infrastructure.Repositories;
 
-namespace TodoApp;
-
-internal static class Program
+namespace TodoApp
 {
-    [STAThread]
-    static void Main()
+    internal static class Program
     {
-        ApplicationConfiguration.Initialize();
+        [STAThread]
+        static void Main()
+        {
+            ApplicationConfiguration.Initialize();
 
+            using IHost host = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    services.AddDbContext<AppDbContext>(options =>
+                        options.UseNpgsql(
+                            context.Configuration.GetConnectionString("DefaultConnection")));
 
-        var host = Host.CreateDefaultBuilder()
-            .ConfigureServices((context, services) =>
-            {
-                services.AddDbContext<AppDbContext>(options =>
-                    options.UseNpgsql(
-                        context.Configuration.GetConnectionString("DefaultConnection")));
-            })
-            .Build();
+                    // Repositories
+                    services.AddScoped<ITaskRepository, TaskRepository>();
 
-        using var scope = host.Services.CreateScope();
-        var services = scope.ServiceProvider;
+                    // Use Cases (Application)
+                    services.AddScoped<CreateTaskUseCase>();
+                    services.AddScoped<CompleteTaskUseCase>();
 
-        System.Windows.Forms.Application.Run(new Form1());
+                    // Forms
+                    services.AddScoped<Form1>();
+                })
+                .Build();
+
+            using var scope = host.Services.CreateScope();
+            var services = scope.ServiceProvider;
+
+            var mainForm = services.GetRequiredService<Form1>();
+            System.Windows.Forms.Application.Run(mainForm);
+        }
     }
 }
